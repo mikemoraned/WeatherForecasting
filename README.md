@@ -128,7 +128,7 @@ influxdb3 show databases --token "YOUR_TOKEN_STRING"
 5. Collect the historical weather data
 
   - Downalod as .cvs file containing one year of London weather data for the year 2024 containing temperature & precipitation values on hourly basis from [OpenMateo API](https://open-meteo.com/en/docs/historical-weather-api?hourly=temperature_2m,precipitation&start_date=2024-01-01&end_date=2024-12-31&timezone=Europe%2FLondon&latitude=51.5&longitude=0.12)
-  - Clean up data and convert to LineProtocol format using ChatGPT, [file](https://github.com/InfluxCommunity/WeatherForecasting/blob/main/london_weather_ns.lp)
+  - Clean up data and convert to LineProtocol format. [File](https://github.com/InfluxCommunity/WeatherForecasting/blob/main/london_weather_ns.lp)
     
 5. Write Weather data for 2024 for London using the CLI. We will download and convert the data to line protocol
 ```shell
@@ -156,17 +156,16 @@ A plugin is a Python file containing a callback function with a specific signatu
 
 #### Install Python dependencies (optional)
 
-InfluxDB 3 provides a virtual enviornment for running python processing engine plugins. Those plugins are often dependent on python packages such as those from PyPy. They can be installed using influxdb3 cli for example `influxdb3 install package pandas --token YOUR_TOKEN_STRING` to install pandas package.
+InfluxDB 3 provides a virtual enviornment for running python processing engine plugins. Those plugins are often dependent on python packages such as those from PyPy. They can be installed using influxdb3 cli for example `influxdb3 install package pandas --token YOUR_TOKEN_STRING'.
 
-#### 1. Collect & Store Weather Data
+**Install Python Packages**
+```sh
+influxdb3 install package pandas neuralprophet plotly matplotlib --token 'YOUR_TOKEN_STRING'
+```
 
+#### Forecast Weather
 
-
-
-
-#### 2. Forecast Weather at set Interval
-
-We will create a Scheule plugin so it runs at a given schedule defined in the `trigger-spec`.
+We will create a Schedule plugin so it runs at a given schedule defined in the `trigger-spec`.
 
 <img src="Schedule-Plugin-Diagram.png" alt="schedule-plugin-diagram" width="400">
 
@@ -183,28 +182,32 @@ Arguments:
   
 ```shell
 influxdb3 create trigger \
-  --trigger-spec "every:10s" \
-  --plugin-filename "hello-schedule.py" \
+  --trigger-spec "every:1d" \
+  --plugin-filename "forecast_london_weather.py" \
+  --token 'YOUR_TOKEN_STRING' \
   --database my_awesome_db \
-  --token YOUR_TOKEN_STRING \
-  hello_schedule_trigger
+  london_weather_forecast
 ```
 
-2.3 Test the program
+2.3 Verify the Forecasted Data
 
-Run the following command to query test data written to the new data at given interval.
+Run the following command to query forecasted data written to the new table at given interval.
 
 ```shell
 influxdb3 query \
   --database my_awesome_db \
-  --token YOUR_TOKEN_STRING \
-  --language sql \
-  "SELECT *, tz(time, 'America/Los_Angeles') AS local_time FROM scheduler_heartbeat ORDER BY time DESC LIMIT 10"
+  --token 'YOUR_TOKEN_STRING' \
+  "SELECT * FROM forecast_weather"
 ```
-Verify the new records were added at the given schedule (e.g. 10 seconds).
 
-3.  Stop InfluxDB3
+3.  Disable Trigger & Stop InfluxDB3
 
+To disable the plugin trigger:
+
+```sh
+influxdb3 disable trigger --database my_awesome_db london_weather_forecast --token 'YOUR_TOKEN_STRING'
+influxdb3 disable trigger --database my_awesome_db forecast_weather_plot --token 'YOUR_TOKEN_STRING'
+```
 Last step is to stop InfluxDB3 if you'd like. If InfluxDB 3 is running in the foreground, you can usually stop it by pressing `Ctrl+C` otherwise in a new terminal window execute the following commands to find and kill the InfluxDB 3 server:
 ```shell
 ps aux | grep influxdb3
