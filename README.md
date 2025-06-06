@@ -125,21 +125,29 @@ influxdb3 create database my_awesome_db --token "YOUR_TOKEN_STRING"
 influxdb3 show databases --token "YOUR_TOKEN_STRING"
 ```
 
-5. Write Data using the CLI
+5. Collect the historical weather data
+
+  - Downalod as .cvs file containing one year of London weather data for the year 2024 containing temperature & precipitation values on hourly basis from [OpenMateo API](https://open-meteo.com/en/docs/historical-weather-api?hourly=temperature_2m,precipitation&start_date=2024-01-01&end_date=2024-12-31&timezone=Europe%2FLondon&latitude=51.5&longitude=0.12)
+  - Clean up data and convert to LineProtocol format using ChatGPT, [file](https://github.com/InfluxCommunity/WeatherForecasting/blob/main/london_weather_ns.lp)
+    
+5. Write Weather data for 2024 for London using the CLI. We will download and convert the data to line protocol
 ```shell
-influxdb3 write \
-  --database my_awesome_db \
-  --token YOUR_TOKEN_STRING \
-  --precision ns \
-  'cpu,host=server01,region=us-west value=0.64 1641024000000000000'
+influxdb3 write --database my_awesome_db --file london_weather_ns.lp --token 'YOUR_TOKEN_STRING'
 ```
 
 6. Query Data using the CLI
 ```shell
 influxdb3 query \
   --database my_awesome_db \
-  --token YOUR_TOKEN_STRING \
-  "SELECT * FROM cpu"
+  --token 'YOUR_TOKEN_STRING' \
+  "SHOW tables"
+```
+
+```shell
+influxdb3 query \
+  --database my_awesome_db \
+  --token 'YOUR_TOKEN_STRING' \
+  "SELECT * FROM london_weather"
 ``` 
 
 ### Plugin & Triggers
