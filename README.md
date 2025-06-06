@@ -167,9 +167,7 @@ influxdb3 install package pandas neuralprophet plotly matplotlib --token 'YOUR_T
 
 We will create a Schedule plugin so it runs at a given schedule defined in the `trigger-spec`.
 
-<img src="Schedule-Plugin-Diagram.png" alt="schedule-plugin-diagram" width="400">
-
-2.1 Create a plugin for Schedule trigger. [Sample file](hello-schedule.py)
+2.1 Create a plugin for Schedule trigger. [Plugin code](https://github.com/InfluxCommunity/WeatherForecasting/blob/main/forecast_london_weather.py))
 
 2.2 Create a Schedule trigger that runs on any particular schedule.
 
@@ -182,7 +180,7 @@ Arguments:
   
 ```shell
 influxdb3 create trigger \
-  --trigger-spec "every:1d" \
+  --trigger-spec "every:1m" \
   --plugin-filename "forecast_london_weather.py" \
   --token 'YOUR_TOKEN_STRING' \
   --database my_awesome_db \
@@ -206,7 +204,6 @@ To disable the plugin trigger:
 
 ```sh
 influxdb3 disable trigger --database my_awesome_db london_weather_forecast --token 'YOUR_TOKEN_STRING'
-influxdb3 disable trigger --database my_awesome_db forecast_weather_plot --token 'YOUR_TOKEN_STRING'
 ```
 Last step is to stop InfluxDB3 if you'd like. If InfluxDB 3 is running in the foreground, you can usually stop it by pressing `Ctrl+C` otherwise in a new terminal window execute the following commands to find and kill the InfluxDB 3 server:
 ```shell
